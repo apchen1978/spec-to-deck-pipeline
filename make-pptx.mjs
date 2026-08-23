@@ -366,7 +366,8 @@ function layoutStatRow(slide, deck, s, PAL, n) {
     slide.addShape("rect", { x, y: startY, w: 0.05, h: ch, fill: { color: PAL.accent } });
     slide.addText(String(st.value), { x: x + 0.35, y: startY + 0.3, w: cw - 0.6, h: 1.1, fontSize: 42, bold: true, color: PAL.ink, fontFace: pickFont(String(st.value)), valign: "top" });
     slide.addShape("rect", { x: x + 0.35, y: startY + 1.55, w: cw - 0.6, h: 0.014, fill: { color: PAL.line } });
-    slide.addText(String(st.label), { x: x + 0.35, y: startY + 1.7, w: cw - 0.6, h: 0.85, fontSize: 12.5, color: PAL.gray, fontFace: F_CJK, valign: "top", lineSpacingMultiple: 1.2 });
+    slide.addText(String(st.label), { x: x + 0.35, y: startY + 1.7, w: cw - 0.6, h: 0.55, fontSize: 12.5, color: PAL.gray, fontFace: F_CJK, valign: "top", lineSpacingMultiple: 1.2 });
+    if (st.note) slide.addText(String(st.note), { x: x + 0.35, y: startY + 2.25, w: cw - 0.6, h: 0.4, fontSize: 9.5, color: PAL.grayLight, fontFace: F_CJK, valign: "top", lineSpacingMultiple: 1.15 });
   });
   addFooter(slide, deck, PAL, n, deck.slides.length);
 }
