@@ -372,6 +372,7 @@ function layoutStatRow(slide, deck, s, PAL, n) {
 }
 
 // 機構對比表：hairline 分隔、表頭小寫距大寫、狀態欄強調色、正文 15pt、行高自適應
+// cell 值可為 string 或 [主文, 附註]：附註以 11.5pt muted gray 印在主文下方（claim boundary 用）
 function estLines(text, widthIn, sizePt) {
   // 粗估換行：CJK 字寬 = 1em，拉丁 ≈ 0.55em（Segoe UI 平均字寬）
   let used = 0, lines = 1;
@@ -394,7 +395,8 @@ function layoutTable(slide, deck, s, PAL, n) {
   const rows = s.rows || [];
   const x0 = M, w = 12.03;
   const hh = 0.42;
-  const CELL = 15; // 正文 ≥14pt（14–16 範圍取 15）
+  const CELL = 15;   // 正文 ≥14pt（14–16 範圍取 15）
+  const NOTE = 11.5; // 附註（11–12pt muted gray）
   const pad = 0.15;
   cols.forEach((c, i) => {
     const cw = w / cols.length;
@@ -405,15 +407,25 @@ function layoutTable(slide, deck, s, PAL, n) {
   rows.forEach((r, ri) => {
     const cells = Array.isArray(r) ? r : cols.map((c) => (r[c] != null ? String(r[c]) : ""));
     const cw = w / cols.length;
-    const maxLines = Math.max(...cells.map((c) => estLines(c, cw - pad * 2, CELL)));
-    const rowH = Math.max(0.7, maxLines * (CELL / 72) * 1.4 + 0.3);
+    const innerW = cw - pad * 2;
+    // 行高：主文行數（15pt）+ 附註行數（11.5pt）
+    const mainLines = Math.max(...cells.map((c) => estLines(Array.isArray(c) ? c[0] : c, innerW, CELL)));
+    const noteLines = Math.max(...cells.map((c) => (Array.isArray(c) && c[1] != null ? estLines(c[1], innerW, NOTE) : 0)));
+    const rowH = Math.max(0.7, mainLines * (CELL / 72) * 1.4 + noteLines * (NOTE / 72) * 1.35 + 0.34);
     if (ri > 0) slide.addShape("rect", { x: x0, y: y - 0.14, w, h: 0.008, fill: { color: PAL.line } });
     cells.forEach((cell, ci) => {
-      const isStatus = /^(TESTED|PENDING|VERIFIED|NOT YET PROVEN)/.test(cell);
-      slide.addText(cell, {
-        x: x0 + ci * cw + pad, y: y - 0.1, w: cw - pad * 2, h: rowH + 0.1, fontSize: CELL, valign: "middle",
-        color: isStatus ? PAL.accent : PAL.ink, bold: isStatus, fontFace: pickFont(cell), lineSpacingMultiple: 1.2,
-      });
+      const main = Array.isArray(cell) ? String(cell[0]) : String(cell);
+      const note = Array.isArray(cell) && cell[1] != null ? String(cell[1]) : null;
+      const isStatus = /^(TESTED|PENDING|VERIFIED|NOT YET PROVEN)/.test(main);
+      const baseOpts = { x: x0 + ci * cw + pad, w: innerW, fontSize: CELL, color: isStatus ? PAL.accent : PAL.ink, bold: isStatus, fontFace: pickFont(main), lineSpacingMultiple: 1.2 };
+      if (note) {
+        // 主文上緣對齊、附註跟隨其下
+        const mainH = estLines(main, innerW, CELL) * (CELL / 72) * 1.4;
+        slide.addText(main, { ...baseOpts, y: y - 0.08, h: mainH, valign: "top" });
+        slide.addText(note, { x: x0 + ci * cw + pad, y: y - 0.08 + mainH + 0.04, w: innerW, h: rowH - mainH - 0.1, fontSize: NOTE, color: PAL.grayLight, fontFace: F_LATIN, valign: "top", lineSpacingMultiple: 1.2 });
+      } else {
+        slide.addText(main, { ...baseOpts, y: y - 0.1, h: rowH + 0.1, valign: "middle" });
+      }
     });
     y += rowH;
   });
