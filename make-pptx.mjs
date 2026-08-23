@@ -371,7 +371,17 @@ function layoutStatRow(slide, deck, s, PAL, n) {
   addFooter(slide, deck, PAL, n, deck.slides.length);
 }
 
-// 機構對比表：hairline 分隔、表頭小寫距大寫、克制單色
+// 機構對比表：hairline 分隔、表頭小寫距大寫、狀態欄強調色、正文 15pt、行高自適應
+function estLines(text, widthIn, sizePt) {
+  // 粗估換行：CJK 字寬 = 1em，拉丁 ≈ 0.55em（Segoe UI 平均字寬）
+  let used = 0, lines = 1;
+  for (const ch of String(text)) {
+    const w = /[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF\u3000-\u303F]/.test(ch) ? sizePt / 72 : (0.55 * sizePt) / 72;
+    if (used + w > widthIn) { lines++; used = 0; }
+    used += w;
+  }
+  return lines;
+}
 function layoutTable(slide, deck, s, PAL, n) {
   slide.background = { color: PAL.white };
   addHeader(slide, PAL, s);
@@ -384,24 +394,28 @@ function layoutTable(slide, deck, s, PAL, n) {
   const rows = s.rows || [];
   const x0 = M, w = 12.03;
   const hh = 0.42;
+  const CELL = 15; // 正文 ≥14pt（14–16 範圍取 15）
+  const pad = 0.15;
   cols.forEach((c, i) => {
     const cw = w / cols.length;
-    slide.addText(String(c).toUpperCase(), { x: x0 + i * cw + 0.12, y, w: cw - 0.24, h: hh, fontSize: 9.5, bold: true, color: PAL.accent, charSpacing: 1.5, fontFace: F_LATIN, valign: "middle" });
+    slide.addText(String(c).toUpperCase(), { x: x0 + i * cw + pad, y, w: cw - pad * 2, h: hh, fontSize: 11, bold: true, color: PAL.accent, charSpacing: 1.5, fontFace: F_LATIN, valign: "middle" });
   });
   slide.addShape("rect", { x: x0, y: y + hh, w, h: 0.016, fill: { color: PAL.ink } });
   y += hh + 0.3;
   rows.forEach((r, ri) => {
-    if (ri > 0) slide.addShape("rect", { x: x0, y: y - 0.16, w, h: 0.008, fill: { color: PAL.line } });
     const cells = Array.isArray(r) ? r : cols.map((c) => (r[c] != null ? String(r[c]) : ""));
+    const cw = w / cols.length;
+    const maxLines = Math.max(...cells.map((c) => estLines(c, cw - pad * 2, CELL)));
+    const rowH = Math.max(0.7, maxLines * (CELL / 72) * 1.4 + 0.3);
+    if (ri > 0) slide.addShape("rect", { x: x0, y: y - 0.14, w, h: 0.008, fill: { color: PAL.line } });
     cells.forEach((cell, ci) => {
-      const cw = w / cols.length;
       const isStatus = /^(TESTED|PENDING|VERIFIED|NOT YET PROVEN)/.test(cell);
       slide.addText(cell, {
-        x: x0 + ci * cw + 0.12, y: y - 0.12, w: cw - 0.24, h: 0.6, fontSize: 11, valign: "middle",
-        color: isStatus ? PAL.accent : PAL.ink, bold: isStatus, fontFace: pickFont(cell), lineSpacingMultiple: 1.12,
+        x: x0 + ci * cw + pad, y: y - 0.1, w: cw - pad * 2, h: rowH + 0.1, fontSize: CELL, valign: "middle",
+        color: isStatus ? PAL.accent : PAL.ink, bold: isStatus, fontFace: pickFont(cell), lineSpacingMultiple: 1.2,
       });
     });
-    y += 0.72;
+    y += rowH;
   });
   addFooter(slide, deck, PAL, n, deck.slides.length);
 }

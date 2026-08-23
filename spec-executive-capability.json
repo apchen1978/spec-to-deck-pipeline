@@ -74,11 +74,11 @@
       "title": "三個案例：從問題到系統，再到可核對的證據",
       "columns": ["CASE", "CORE MECHANISM", "EVIDENCE", "STATUS"],
       "rows": [
-        ["AI Trade Deal Desk", "報價與匯率決策工作流", "13/13 情境 + 5/5 邊界驗證通過", "TESTED"],
-        ["AI Payment Advisor", "信用狀與付款條件決策", "51/51 驗證案例通過", "TESTED"],
-        ["Commercial Decision Desk", "跨案決策看板 · 8 條硬規則", "38/38 合成案例（fixture）", "PENDING"]
+        ["AI Trade Deal Desk", "報價/匯率決策工作流", "13/13 + 5/5 驗證通過", "TESTED"],
+        ["Payment Concentration", "按幣別的可稽核、確定性 rolling 7-day payment-commitment exposure calculation", "51/51 驗證通過（prototype）", "TESTED"],
+        ["Commercial Decision Desk", "跨案決策看板 · 8 條硬規則", "38/38 合成案例", "PENDING"]
       ],
-      "notes": "狀態紀律：TESTED = 可重跑驗證通過；PENDING = 合成資料先行，adoption-ROI 尚未實證。"
+      "notes": "狀態紀律：TESTED = 可重跑驗證通過；PENDING = 合成資料先行。Payment Concentration 為 prototype evidence：優於 Excel、商業採用、支付意願尚未實證。"
     },
     {
       "layout": "statement",
