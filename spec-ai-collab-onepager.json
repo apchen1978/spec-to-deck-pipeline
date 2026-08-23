@@ -1,0 +1,24 @@
+{
+  "title": "AI Collaboration Capability",
+  "author": "Paul Chen",
+  "date": "2026.08",
+  "footer": "PAUL'S TRADECRAFT | AI COLLABORATION | paulstradecraft.com · paulchen1978@gmail.com",
+  "output": "Paul-Tradecraft-AI-Collaboration-OnePager.pptx",
+  "slides": [
+    {
+      "layout": "onePager",
+      "kicker": "PAUL'S TRADECRAFT · AI COLLABORATION ONE-PAGER",
+      "title": "把商業問題，轉化成 AI 可以參與、人工可以掌控的流程與產品",
+      "support": "15 年國際貿易總監 × AI 協作 | TOEIC 955 | Human-led, AI-accelerated",
+      "bullets": [
+        "懂貿易：報價/追蹤/供應商/跟進/證據鏈",
+        "協作迴圈：決策→分工→審核→部署→冷審計",
+        "工具：Codex · DSH · ChatGPT · GitHub Actions",
+        "作品：7 件全有證據，2 件可即時遊玩",
+        "網站：paulstradecraft.com（本站即案例）",
+        "聯絡：paulchen1978@gmail.com"
+      ],
+      "notes": "一頁式能力總覽：人設、流程、工具、作品一次講完。"
+    }
+  ]
+}
