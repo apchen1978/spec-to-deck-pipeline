@@ -1,10 +1,12 @@
 // make-pptx.mjs — 可重複使用的簡報產生器（pptxgenjs）
-// v3 —「編輯式顧問簡報」設計系統（McKinsey / a16z 語言）
+// v4 —「編輯式顧問簡報」設計系統（McKinsey / a16z 語言）
 //   * 扁平、克制：無陰影、無圓角裝飾、無 ghost 數字
 //   * 嚴格網格：0.65" 邊距、統一模組、hairline 分隔線 + 強調色段
 //   * Action title：標題即完整洞察；每頁一個 takeaway
 //   * 雙字體：拉丁/數字用 Segoe UI（小寫距大寫標籤），中文用微軟正黑體
 //   * 深色 takeaway panel（McKinsey insight box）+ 金色論點線
+//   * v4 新增版型：statRow（統計列 / number band）、table（機構對比表）、
+//     quote（引句頁 pull quote）；沿用既有版型，spec 格式向下相容
 // 用法:
 //   node make-pptx.mjs                 -> 用內建示範 spec，產出 demo-DSH快速指南.pptx
 //   node make-pptx.mjs spec.json        -> 用自訂 spec 產出（spec 內 output 欄位指定檔名）
@@ -22,10 +24,15 @@
 //     { "layout": "statementSplit", "kicker", "title", "support", "bullets",
 //       "card": { "label", "title", "desc" } },
 //     { "layout": "statementCards", "kicker", "title", "support", "bullets" },
+//     { "layout": "statRow",        "kicker", "title", "support",
+//       "stats": [ { "value", "label", "note" } ] },
+//     { "layout": "table",          "kicker", "title", "support",
+//       "columns": [ ... ], "rows": [ [ ... ] | { col: val } ] },
+//     { "layout": "quote",          "kicker", "title", "support", "attribution" },
 //     { "layout": "closing",        "kicker", "title", "support" }
 //   ]
 // }
-// 卡片化規則：bullet 含「：/→/－/—」時自動拆成「主詞 + 說明」。
+// 卡片化規則：bullet 含「：/→/－/—」時自動拆成「主詞 + 說明」（主詞 ≤14 字）。
 
 import fs from "node:fs";
 import path from "node:path";
@@ -339,6 +346,77 @@ function layoutContent(slide, deck, s, PAL, n) {
   addFooter(slide, deck, PAL, n, deck.slides.length);
 }
 
+// 統計列（McKinsey number band）：一列大數字 + 標籤，克制單色
+function layoutStatRow(slide, deck, s, PAL, n) {
+  slide.background = { color: PAL.white };
+  addHeader(slide, PAL, s);
+  let y = 2.35;
+  if (s.support) {
+    slide.addText(s.support, { x: M, y, w: 11.9, h: 0.45, fontSize: 13, color: PAL.gray, fontFace: F_CJK });
+    y += 0.6;
+  }
+  const stats = s.stats || [];
+  if (!stats.length) { addFooter(slide, deck, PAL, n, deck.slides.length); return; }
+  const gap = 0.28;
+  const cw = (12.03 - gap * (stats.length - 1)) / stats.length;
+  const ch = 2.7;
+  const startY = y + Math.max(0, (6.7 - y - ch) / 2);
+  stats.forEach((st, i) => {
+    const x = M + i * (cw + gap);
+    slide.addShape("rect", { x, y: startY, w: 0.05, h: ch, fill: { color: PAL.accent } });
+    slide.addText(String(st.value), { x: x + 0.35, y: startY + 0.3, w: cw - 0.6, h: 1.1, fontSize: 42, bold: true, color: PAL.ink, fontFace: pickFont(String(st.value)), valign: "top" });
+    slide.addShape("rect", { x: x + 0.35, y: startY + 1.55, w: cw - 0.6, h: 0.014, fill: { color: PAL.line } });
+    slide.addText(String(st.label), { x: x + 0.35, y: startY + 1.7, w: cw - 0.6, h: 0.85, fontSize: 12.5, color: PAL.gray, fontFace: F_CJK, valign: "top", lineSpacingMultiple: 1.2 });
+  });
+  addFooter(slide, deck, PAL, n, deck.slides.length);
+}
+
+// 機構對比表：hairline 分隔、表頭小寫距大寫、克制單色
+function layoutTable(slide, deck, s, PAL, n) {
+  slide.background = { color: PAL.white };
+  addHeader(slide, PAL, s);
+  let y = 2.35;
+  if (s.support) {
+    slide.addText(s.support, { x: M, y, w: 11.9, h: 0.45, fontSize: 13, color: PAL.gray, fontFace: F_CJK });
+    y += 0.55;
+  }
+  const cols = s.columns || [];
+  const rows = s.rows || [];
+  const x0 = M, w = 12.03;
+  const hh = 0.42;
+  cols.forEach((c, i) => {
+    const cw = w / cols.length;
+    slide.addText(String(c).toUpperCase(), { x: x0 + i * cw + 0.12, y, w: cw - 0.24, h: hh, fontSize: 9.5, bold: true, color: PAL.accent, charSpacing: 1.5, fontFace: F_LATIN, valign: "middle" });
+  });
+  slide.addShape("rect", { x: x0, y: y + hh, w, h: 0.016, fill: { color: PAL.ink } });
+  y += hh + 0.3;
+  rows.forEach((r, ri) => {
+    if (ri > 0) slide.addShape("rect", { x: x0, y: y - 0.16, w, h: 0.008, fill: { color: PAL.line } });
+    const cells = Array.isArray(r) ? r : cols.map((c) => (r[c] != null ? String(r[c]) : ""));
+    cells.forEach((cell, ci) => {
+      const cw = w / cols.length;
+      const isStatus = /^(TESTED|PENDING|VERIFIED|NOT YET PROVEN)/.test(cell);
+      slide.addText(cell, {
+        x: x0 + ci * cw + 0.12, y: y - 0.12, w: cw - 0.24, h: 0.6, fontSize: 11, valign: "middle",
+        color: isStatus ? PAL.accent : PAL.ink, bold: isStatus, fontFace: pickFont(cell), lineSpacingMultiple: 1.12,
+      });
+    });
+    y += 0.72;
+  });
+  addFooter(slide, deck, PAL, n, deck.slides.length);
+}
+
+// 引句頁（pull quote）：深墨藍 + 單一論點 + 金線
+function layoutQuote(slide, deck, s, PAL) {
+  slide.background = { color: PAL.ink };
+  slide.addShape("rect", { x: 0, y: 0, w: W, h: 0.06, fill: { color: PAL.accent } });
+  if (s.kicker) slide.addText(String(s.kicker).toUpperCase(), { x: 0.9, y: 1.55, w: 11, h: 0.3, fontSize: 10.5, bold: true, color: PAL.accentBright, charSpacing: 3, fontFace: F_LATIN });
+  slide.addText(runs(s.title, { bold: true }), { x: 0.88, y: 2.1, w: 11.5, h: 2.2, fontSize: 30, color: PAL.white, fontFace: F_CJK, valign: "top", lineSpacingMultiple: 1.22 });
+  slide.addShape("rect", { x: 0.95, y: 4.5, w: 1.2, h: 0.045, fill: { color: PAL.gold } });
+  if (s.support) slide.addText(s.support, { x: 0.9, y: 4.85, w: 11, h: 0.5, fontSize: 13.5, color: PAL.panelText, fontFace: F_CJK });
+  if (s.attribution) slide.addText(s.attribution, { x: 0.9, y: 6.3, w: 11, h: 0.4, fontSize: 10.5, color: PAL.grayLight, fontFace: F_CJK });
+}
+
 // ---------- 組裝 ----------
 
 function build(deck) {
@@ -363,6 +441,9 @@ function build(deck) {
     else if (L === "statementSplit") layoutStatementSplit(slide, deck, s, PAL, n);
     else if (L === "statementCards") layoutStatementCards(slide, deck, s, PAL, n);
     else if (L === "onePager") layoutOnePager(slide, deck, s, PAL);
+    else if (L === "statRow") layoutStatRow(slide, deck, s, PAL, n);
+    else if (L === "table") layoutTable(slide, deck, s, PAL, n);
+    else if (L === "quote") layoutQuote(slide, deck, s, PAL);
     else if (L === "closing") layoutClosing(slide, deck, s, PAL);
     else layoutContent(slide, deck, s, PAL, n);
 
