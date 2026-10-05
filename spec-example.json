@@ -1,0 +1,56 @@
+{
+  "title": "Spec-to-Deck Pipeline · Sample",
+  "author": "Spec-to-Deck Pipeline",
+  "date": "2026-10",
+  "footer": "SPEC-TO-DECK PIPELINE · SAMPLE",
+  "output": "sample-deck.pptx",
+  "slides": [
+    {
+      "layout": "cover",
+      "kicker": "SAMPLE DECK",
+      "title": "把一個決定寫清楚",
+      "subtitle": "這份簡報由一份 spec JSON 產生；內容皆為示範。"
+    },
+    {
+      "layout": "section",
+      "title": "01　一份 spec，一份簡報",
+      "subtitle": "寫內容 → 產生 PPTX → 轉成 PDF"
+    },
+    {
+      "layout": "statement",
+      "kicker": "HOW IT WORKS",
+      "title": "文字與版面分開：改文案，不必動程式",
+      "support": "每一頁是 spec 裡的一個物件。",
+      "bullets": [
+        "每頁指定 layout、title 與內容",
+        "版型：cover、section、statement、table、quote、closing 等",
+        "輸出是一般 .pptx，可再用 PowerPoint 微調",
+        "同一份 spec 重跑，結果一致"
+      ]
+    },
+    {
+      "layout": "table",
+      "kicker": "EXAMPLE TABLE",
+      "title": "選項比較表的寫法（示範資料）",
+      "support": "表格用來並排比較選項，狀態欄用強調色標出來。",
+      "columns": ["選項", "做法", "要先確認", "狀態"],
+      "rows": [
+        ["選項 A", "先小量試做", "試做的範圍與負責人", "DEMO"],
+        ["選項 B", "直接全面開始", "需要的資源是否到位", "DEMO"],
+        ["選項 C", "先不動，補資料", "缺的資料由誰補", "DEMO"]
+      ]
+    },
+    {
+      "layout": "quote",
+      "kicker": "PRINCIPLE",
+      "title": "沒有來源的數字，就不寫。",
+      "support": "示範內容一律標示 DEMO；未知的值標「未提供」。"
+    },
+    {
+      "layout": "closing",
+      "kicker": "RERUN",
+      "title": "npm install，然後 node make-pptx.mjs spec-example.json",
+      "support": "PPTX 轉 PDF 可用 LibreOffice：soffice --headless --convert-to pdf"
+    }
+  ]
+}

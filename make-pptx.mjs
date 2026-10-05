@@ -8,7 +8,7 @@
 //   * v4 新增版型：statRow（統計列 / number band）、table（機構對比表）、
 //     quote（引句頁 pull quote）；沿用既有版型，spec 格式向下相容
 // 用法:
-//   node make-pptx.mjs                 -> 用內建示範 spec，產出 demo-DSH快速指南.pptx
+//   node make-pptx.mjs                 -> 用內建示範 spec（spec-example.json），產出 sample-deck.pptx
 //   node make-pptx.mjs spec.json        -> 用自訂 spec 產出（spec 內 output 欄位指定檔名）
 //   node make-pptx.mjs spec.json out.pptx
 //
@@ -67,66 +67,8 @@ function pickFont(t) {
   return /[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF\u3000-\u303F]/.test(t) ? F_CJK : F_LATIN;
 }
 
-const DEFAULT_SPEC = {
-  title: "DeepSeek Harness 快速指南",
-  author: "DeepSeek Harness",
-  date: "2026-08-18",
-  footer: "DEEPSEEK HARNESS | GUIDE BRIEF",
-  output: "demo-DSH快速指南.pptx",
-  slides: [
-    {
-      layout: "cover",
-      kicker: "出差協作利器",
-      title: "DeepSeek Harness 快速指南",
-      subtitle: "啟動方式 × Codex 協作 SOP × 資料紀律",
-      notes: "歡迎使用 DeepSeek Harness：帶著筆電，雙擊桌面圖示即可開工。",
-    },
-    { layout: "section", title: "01　啟動方式", subtitle: "開機 → 雙擊 → 開工" },
-    {
-      layout: "content",
-      title: "桌面與檔案位置",
-      bullets: [
-        "桌面：啟動 DSH.bat（雙擊即開，瀏覽器自動連到 127.0.0.1:3080）",
-        "07_腳本：重啟 DSH.bat / 停止 DSH.bat / 開機自動啟動.bat",
-        "對話紀錄：C:/Users/grays/.dsh/sessions（停止服務不會刪除）",
-        "啟動指令：npx --yes @deepseek-ai/dsh web",
-      ],
-      notes: "開機自啟設定好之後，只需要雙擊 啟動 DSH.bat 一次。",
-    },
-    {
-      layout: "content",
-      title: "與 Codex 協作 SOP",
-      bullets: [
-        "產物生成 → Codex：xlsx、程式碼、artifact 管線",
-        "稽核接手 → DeepSeek：讀懂專案、Shadow Audit、Handoff",
-        "中文文書 → DeepSeek：LINE 草稿、說明文件、回覆客戶",
-        "交接橋樑 → AGENTS.md + Git + 明確標示",
-      ],
-      notes: "Codex 在台北主力產出，DeepSeek 在出差時稽核與文書，雙方互當 reviewer。",
-    },
-    {
-      layout: "content",
-      title: "資料紀律",
-      bullets: [
-        "真實客戶資料與模擬資料分開存放",
-        "模擬一律標示 DEMO / SIMULATION",
-        "未知值標「未提供」，不自行補全",
-        "無法判斷時如實標示：SCORE = UNKNOWN",
-      ],
-    },
-    {
-      layout: "content",
-      title: "常用任務",
-      bullets: [
-        "做 PPT / 圖表 / 流程圖（本工具，支援自訂 spec）",
-        "稽核 Codex 留下的專案",
-        "寫回覆客戶的 LINE 草稿",
-        "整理試算表與資料",
-      ],
-      notes: "有任何需求直接對 DeepSeek Harness 說即可；非安全事項大部分可自主執行。",
-    },
-  ],
-};
+// 內建示範：讀取同目錄的 spec-example.json（中性示範內容）。
+const DEFAULT_SPEC = JSON.parse(fs.readFileSync(path.resolve(__dirname, "spec-example.json"), "utf8"));
 
 function loadSpec() {
   if (specArg) {

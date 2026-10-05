@@ -27,11 +27,14 @@ Rerunnable spec-JSON → PPTX → PDF deck pipeline (pptxgenjs). Part of the **P
 
 ```
 npm install
-node make-pptx.mjs spec-executive-capability.json
-# output: Paul-Tradecraft-Executive-Capability-Deck.pptx
+node make-pptx.mjs spec-example.json
+# output: sample-deck.pptx
+# no argument: the same built-in example
 ```
 
-## Sample outputs
+PPTX to PDF: `soffice --headless --convert-to pdf sample-deck.pptx` (LibreOffice).
 
-- `Paul-Tradecraft-Executive-Capability-Deck.pdf` — flagship Executive Capability deck (9 slides, v4), rendered from `spec-executive-capability.json`.
-- `sample-output.pdf` — legacy AI-Collaboration One-Pager deck, rendered from `spec-ai-collab-onepager.json`.
+## Sample output
+
+- `spec-example.json` — a small example spec (cover, section, statement, table, quote, closing).
+- `sample-deck.pdf` — the example rendered from it. All content is demo content.
